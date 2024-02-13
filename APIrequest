@@ -1,0 +1,32 @@
+import requests
+
+api_key = "6850b2e0cc303dd8b429051d92aff4823fc9199b"
+contract_name = "Dublin"
+
+response = requests.get(f"https://api.jcdecaux.com/vls/v1/stations?contract={contract_name}&apiKey={api_key}")
+
+if response.status_code == 200:
+    #data = response.content.decode('utf-8')
+    data = response.json()
+    print(data)
+else:
+    print(response.status.code)
+
+
+from tabulate import tabulate
+
+table = []
+
+for station in data: 
+    ID = station["number"]
+    Name = station["name"]
+    Address = station["address"]
+    TotalStands = station["bike_stands"]
+    AvailableStands = station["available_bike_stands"]
+    AvailableBikes = station["available_bikes"]
+    Status = station["status"]
+    LastUpdate = station["last_update"]
+    table.append([ID, Name, Address, TotalStands, AvailableStands, AvailableBikes, Status, LastUpdate])
+
+headers = ["ID", "Name", "Address", "Total Stands", "Available Stands", "Available Bikes", "Status", "Last Update"]
+print(tabulate(table, headers=headers))
