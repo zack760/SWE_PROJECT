@@ -2,18 +2,19 @@ import requests
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Float, DateTime
 import datetime
 import time
+import os
 
-URI = "dbbikes.cf6ecqu48kpy.eu-north-1.rds.amazonaws.com"
-USER = 'admin'
-PASSWORD = 'comp30830'
-PORT = '3306'
-DB = 'dbbikes'
-APIKEY = "6850b2e0cc303dd8b429051d92aff4823fc9199b"
+URI = os.getenv("DB_URI", "dbbikes.cf6ecqu48kpy.eu-north-1.rds.amazonaws.com")
+USER = os.getenv("DB_USER", "admin")
+PASSWORD = os.getenv("DB_PASSWORD", "comp30830")
+PORT = os.getenv("DB_PORT", "3306")
+DB = os.getenv("DB_NAME", "dbbikes")
+APIKEY = os.getenv("JCDECAUX_APIKEY", "6850b2e0cc303dd8b429051d92aff4823fc9199b")
 NAME = "Dublin"
 STATIONS = "https://api.jcdecaux.com/vls/v1/stations"
 
 # SQLAlchemy engine for MySQL connection
-engine = create_engine('mysql://admin:comp30830@dbbikes.cf6ecqu48kpy.eu-north-1.rds.amazonaws.com:3306/dbbikes', echo=True)
+engine = create_engine(f'mysql://{USER}:{PASSWORD}@{URI}:{PORT}/{DB}', echo=True)
 
 # Metadata instance for SQLAlchemy
 metadata = MetaData()
@@ -38,9 +39,8 @@ availability = Table(
     'availability', metadata,
     Column('number', Integer, primary_key=True),
     Column('available_bikes', Integer),
-    Column('available_bike_stands', Integer),
+    Column('available_stands', Integer),
     Column('last_update', DateTime),
-    Column('datetime', DateTime, default=datetime.datetime.utcnow)
 )
 
 metadata.create_all(engine)
@@ -55,35 +55,37 @@ def fetch_and_insert_data():
                 
                 with engine.connect() as connection:
                     
-                    # Insert into station table
-                    for station_data in stations_data:
-                        connection.execute(station.insert(), {
-                            'address': station_data['address'],
-                            'banking': station_data['banking'],
-                            'bike_stands': station_data['bike_stands'],
-                            'bonus': station_data['bonus'],
-                            'contract_name': station_data['contract_name'],
-                            'name': station_data['name'],
-                            'number': station_data['number'],
-                            'position_lat': station_data['position']['lat'],
-                            'position_lng': station_data['position']['lng'],
-                            'status': station_data['status']
-                        })
+                    # Prepare data for bulk insert to improve performance
+                    station_inserts = [{
+                        'address': station_data['address'],
+                        'banking': station_data['banking'],
+                        'bike_stands': station_data['bike_stands'],
+                        'bonus': station_data['bonus'],
+                        'contract_name': station_data['contract_name'],
+                        'name': station_data['name'],
+                        'number': station_data['number'],
+                        'position_lat': station_data['position']['lat'],
+                        'position_lng': station_data['position']['lng'],
+                        'status': station_data['status']
+                    } for station_data in stations_data]
                     
-                    # Insert into availability table
-                    for station_data in stations_data:
-                        connection.execute(availability.insert(), {
-                            'number': station_data['number'],
-                            'available_bikes': station_data['available_bikes'],
-                            'available_bike_stands': station_data['available_bike_stands'],
-                            'last_update': datetime.datetime.fromtimestamp(station_data['last_update'] / 1e3)
-                        })
+                    availability_inserts = [{
+                        'number': station_data['number'],
+                        'available_bikes': station_data['available_bikes'],
+                        'available_stands': station_data['available_stands'],
+                        'last_update': datetime.datetime.fromtimestamp(station_data['last_update'] / 1e3)
+                    } for station_data in stations_data]
+                    
+                    # Execute bulk inserts
+                    connection.execute(station.insert(), station_inserts)
+                    connection.execute(availability.insert(), availability_inserts)
             else:
                 print(f"Failed to fetch data: {response.status_code}")
                 
             time.sleep(5*60)  # Wait for 5 minutes before fetching new data
             
-        
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
 # Run the function
 if __name__ == '__main__':
