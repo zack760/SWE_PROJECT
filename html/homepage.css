@@ -55,7 +55,7 @@ header {
     height: 80%;
 }
 /* dowb page */
-.map {
+#map {
     width: 70%;    
     height: 100%;
 }
@@ -71,7 +71,7 @@ header {
     color: white
 }
 
-.map {
+#map {
     background-color: blue;
 }
 
