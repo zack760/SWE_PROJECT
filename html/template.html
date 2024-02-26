@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dublin Bikes</title>
     <link rel="stylesheet" href="./homepage.css">
-
+    <script src="https://maps.googleapis.com/maps/api/js?key=APIKEY&callback=initMap" async defer></script>
 </head>
 
 <body>
@@ -45,13 +45,21 @@
                 <button>Book</button>
             </div>
         </div>
-        <div class="map">
+        <div id="map">
             Wait for GoogleMap To Connect
         </div>
     </div>
-    <div id="map">
+    
+    <script>
+        function initMap() {
+            var dublin = {lat: 53.349805, lng: -6.26031};
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 13,
+                center: dublin
+            });
+        }
+    </script>
 
-    </div>
 </body>
 
 </html>
