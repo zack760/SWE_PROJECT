@@ -73,8 +73,8 @@ def fetch_and_format_weather_info():
             'sunset': datetime.fromtimestamp(weather_data['sys']['sunset']).strftime('%Y-%m-%d %H:%M')
         }
 
-        sql = """INSERT INTO Weather(dateTime, weatherID, weatherMain, weatherDescr, weatherIcon, temperature, pressure, humidity, tempMin, tempMax, visibility, windSpeed, windDeg, clouds, feels_like, sunrise, sunset) 
-        VALUES ('{dateTime}', '{weatherID}', '{weatherMain}', '{weatherDescr}', '{weatherIcon}', {temperature}, {pressure}, {humidity}, {tempMin}, {tempMax}, {visibility}, {windSpeed}, {windDeg}, {clouds}, {feels_like}, '{sunrise}', '{sunset}')""".format(**weather_vals)
+        sql = """INSERT INTO Weather(dateTime, weatherID, weatherMain, weatherDescr, temperature, pressure, humidity, tempMin, tempMax, visibility, windSpeed, windDeg, clouds, feels_like, sunrise, sunset) 
+        VALUES ('{dateTime}', '{weatherID}', '{weatherMain}', '{weatherDescr}', {temperature}, {pressure}, {humidity}, {tempMin}, {tempMax}, {visibility}, {windSpeed}, {windDeg}, {clouds}, {feels_like}, '{sunrise}', '{sunset}')""".format(**weather_vals)
         
         return sql
     except Exception as e:
