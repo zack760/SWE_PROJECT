@@ -1,5 +1,6 @@
 import requests
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Float, DateTime, exc
+from sqlalchemy.dialects.mysql import insert as mysql_insert
 import datetime
 import time
 import os
@@ -13,12 +14,11 @@ APIKEY = os.getenv("JCDECAUX_APIKEY", "6850b2e0cc303dd8b429051d92aff4823fc9199b"
 NAME = "Dublin"
 STATIONS = "https://api.jcdecaux.com/vls/v1/stations"
 
+# Setup Database Connection
 engine = create_engine(f'mysql://{USER}:{PASSWORD}@{URI}:{PORT}/{DB}', echo=True, pool_pre_ping=True)
-
-# Metadata instance for SQLAlchemy
 metadata = MetaData()
 
-# Station table definition
+# Define Table Schemas
 station = Table(
     'station', metadata,
     Column('address', String(256), nullable=False),
@@ -33,7 +33,7 @@ station = Table(
     Column('status', String(256))
 )
 
-# Availability table definition
+
 availability = Table(
     'availability', metadata,
     Column('number', Integer, primary_key=True),
@@ -43,6 +43,7 @@ availability = Table(
 )
 
 metadata.create_all(engine)
+
 
 def get_station_data(station):
     try:
@@ -77,24 +78,29 @@ def get_availability_data(station):
 def clean_data(data_list):
     return [data for data in data_list if data is not None]
 
+# Fetch and Insert Data
 def fetch_and_insert_data():
     while True:
         try:
             response = requests.get(STATIONS, params={"contract": NAME, "apiKey": APIKEY})
-            response.raise_for_status()  # This will raise an HTTPError if the HTTP request returned an unsuccessful status code
+            response.raise_for_status()  
             stations_data = response.json()
-            
-            # Prepare data for bulk insert
-            station_inserts = clean_data([get_station_data(station) for station in stations_data])
-            availability_inserts = clean_data([get_availability_data(station) for station in stations_data])
-            
-            # Using the connection in a context manager ensures that the connection is closed after the block is exited
+
             with engine.begin() as connection:
-                if station_inserts:
-                    connection.execute(station.insert(), station_inserts)
-                if availability_inserts:
-                    connection.execute(availability.insert(), availability_inserts)
-                
+
+            # station_inserts = clean_data([get_station_data(station) for station in stations_data])
+                for data in stations_data:
+                    availability_data = get_availability_data(data)
+                    if availability_data is not None:
+                        # 'upsert' logic for availability data
+                        stmt = mysql_insert(availability).values(availability_data)
+                        stmt = stmt.on_duplicate_key_update(
+                            available_bikes=stmt.inserted.available_bikes,
+                            available_bike_stands=stmt.inserted.available_bike_stands,
+                            last_update=stmt.inserted.last_update
+                        )
+                        connection.execute(stmt)
+                        
         except requests.exceptions.HTTPError as http_err:
             print(f"HTTP error occurred: {http_err}")
         except exc.SQLAlchemyError as sql_err:
@@ -105,6 +111,5 @@ def fetch_and_insert_data():
         # Wait for 5 minutes before fetching new data
         time.sleep(5*60)
 
-# Run the function
 if __name__ == '__main__':
     fetch_and_insert_data()
