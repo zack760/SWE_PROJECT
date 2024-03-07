@@ -17,7 +17,7 @@ engine = create_engine(connection_string)
 query = f"SELECT * FROM station"
 df = pd.read_sql(query, engine)
 data_json = df.to_dict(orient="records")
-json_file_path = "data.json"
+json_file_path = "../static/data.json"
 
 with open(json_file_path, "w") as json_file:
     json.dump(data_json, json_file)

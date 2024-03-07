@@ -12,7 +12,7 @@ function initMap() {
 
 
 
-fetch("data.json")
+fetch('/static/data.json')
   .then((response) => {
     console.log(response);
     if (!response.ok) {

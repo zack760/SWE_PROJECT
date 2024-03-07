@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dublin Bikes</title>
-    <link rel="stylesheet" href="{{url_for('static',filename = 'homepage.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'homepage.css' )}}">
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCTTVO1ugwObWvyie4GITw1l9SEZBaPTec&callback=initMap" async defer></script>
-    <script src=".{{url_for('static',filename='index.js')}}.js"></script>
+    <script src="{{ url_for('static',filename='index.js') }}"></script>
 </head>
 
 <body>
