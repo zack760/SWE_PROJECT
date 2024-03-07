@@ -19,7 +19,7 @@ db.init_app(app)
 def hello_world():  # put application's code here
    return render_template('template.html')
 
-
+#try to connect to rds get scrap station data
 @app.route('/stations')
 def get_stations():
     stations = Station.query.all()
