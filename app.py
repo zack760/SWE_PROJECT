@@ -20,7 +20,7 @@ def hello_world():  # put application's code here
    return render_template('template.html')
 
 #try to connect to rds get scrap station data
-@app.route('/stations')
+@app.route('/stationsdemo')
 def get_stations():
     stations = Station.query.all()
     station_list=[{

@@ -61,6 +61,37 @@ function StationPing() {
     });
 }
 
+fetch('/static/data.json')
+  .then(response => response.json())
+  .then(data => {
+    // Create a table
+    let table = document.createElement('table');
+
+    // Insert the header row
+    let headerRow = table.insertRow();
+    let headers = ["Number", "Status", "Address", "Bike_Stands", "Name"];
+    headers.forEach(headerText => {
+      let header = document.createElement('th');
+      let textNode = document.createTextNode(headerText);
+      header.appendChild(textNode);
+      headerRow.appendChild(header);
+    });
+
+    // Insert the data rows
+    data.forEach(item => {
+      let row = table.insertRow();
+      headers.forEach(header => {
+        let cell = row.insertCell();
+        let textNode = document.createTextNode(item[header.toLowerCase()]);
+        cell.appendChild(textNode);
+      });
+    });
+
+    // Append the table to the container
+    document.getElementById('station').appendChild(table);
+  })
+  .catch(error => console.error(error));
+
 function findRoute() {
   var start = document.getElementById("start").value;
   var end = document.getElementById("end").value;
@@ -105,4 +136,18 @@ function removeMarkers() {
   for (var i = 0; i < markers.length; i++) {
     markers[i].setMap(null);
   }
+}
+function showStation(){
+    //read local station json
+    document.getElementById('station').style.display="block";
+    // document.getElementById('stationButton').style.display="block";
+    document.getElementById('map').style.display="none";
+
+
+}
+function closeStation(){
+    document.getElementById('station').style.display="none";
+    // document.getElementById('stationButton').style.display="none";
+    document.getElementById('map').style.display="block";
+
 }
