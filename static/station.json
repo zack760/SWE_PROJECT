@@ -1,0 +1,20 @@
+[
+  {
+    "No": 1,
+    "Name": "中心广场站",
+    "Status": "正常运营",
+    "Address": "中心广场北路",
+    "Available Bike Stands": 10,
+    "Available Bikes": 5,
+    "Available Slots": 5
+  },
+  {
+    "No": 2,
+    "Name": "东城门站",
+    "Status": "维修中",
+    "Address": "东城门外大街",
+    "Available Bike Stands": 15,
+    "Available Bikes": 0,
+    "Available Slots": 15
+  }
+]
