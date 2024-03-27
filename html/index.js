@@ -106,3 +106,80 @@ function removeMarkers() {
     markers[i].setMap(null);
   }
 }
+
+function findClosestStation(address) {
+  var geocoder = new google.maps.Geocoder();
+  geocoder.geocode({ address: address }, function(results, status) {
+    if (status === google.maps.GeocoderStatus.OK) {
+      var location = results[0].geometry.location;
+      var closestStation;
+      var minDistance = Infinity;
+      var closestStation = null;
+
+      stations.forEach(station => {
+        var stationLocation = new google.maps.LatLng(station.position_lat, station.position_lng);
+        var distance = google.maps.geometry.spherical.computeDistanceBetween(location, stationLocation);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestStation = station;
+        }
+      });  
+      console.log("Nearest station: ", closestStation);
+    } else {
+      console.error("Geocoding failed due to: " + status);
+    }
+  });
+}
+
+function findBestRoute(A, B) {
+  var directionsService = new google.maps.DirectionsService();
+  var directionsDisplay = new google.maps.DirectionsRenderer();
+
+  directionsDisplay.setMap(map);
+
+  var request = {
+    origin: A,
+    destination: B,
+    travelMode: "BICYCLING"
+  };
+
+  directionsService.route(request, function(result, status) {
+    if (status == "OK") {
+      directionsDisplay.setDirections(result);
+    
+      var stationA = findClosestStation(A);
+      var stationB = findClosestStation(B);
+
+      drawRoute(A, stationA, "#FF0000");
+      drawRoute(B, stationB, "#0000FF");
+
+    } else {
+      console.error("Directions request failed due to " + status);
+    }
+  });
+}
+
+function drawRoute(origin, dest, color) {
+  var request = {
+    origin: origin,
+    destination: dest,
+    travelMode: "BICYCLING"
+  };
+
+  var directionsService = new google.maps.DirectionsService();
+  directionsService.route(request, function(result, status) { 
+    if (status == "OK") {
+      var DirectionsRenderer = new google.maps.DirectionsRenderer({
+        map: map,
+        directions: result,
+        polylineOptions: {
+          strokeColor: color,
+          strokeOpacity: 1.0,
+          strokeWeight: 4
+        }
+      });
+    } else {
+      console.error("Directions request failed due to " + status)
+    }
+  })
+}

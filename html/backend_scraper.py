@@ -1,4 +1,5 @@
 import pandas as pd
+# import mysql.connector
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime
 import json 
 import os
