@@ -2,7 +2,8 @@ from flask import Flask, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime
 from exts import db
-from models import Station
+from models import Station, Station_Availability
+from sqlalchemy.orm import aliased
 
 # URI =  "ec2-13-48-194-24.eu-north-1.compute.amazonaws.com"
 USER =  "admin"
@@ -20,25 +21,31 @@ def hello_world():  # put application's code here
    return render_template('template.html')
 
 #try to connect to rds get scrap station data
-@app.route('/stationsdemo')
+@app.route('/stations')
 def get_stations():
-    stations = Station.query.all()
-    station_list=[{
-            'address': station.address,
-            'banking': station.banking,
-            'bike_stands': station.bike_stands,
-            'bonus': station.bonus,
-            'contract_name': station.contract_name,
-            'name': station.name,
-            'number': station.number,
-            'position_lat': station.position_lat,
-            'position_lng': station.position_lng,
-            'status': station.status
+    # Aliased to perform a self-join to get the latest record for each station
+    station_alias = aliased(Station_Availability)
+    subquery = db.session.query(
+        station_alias.number,
+        db.func.max(station_alias.last_update).label('latest_update')
+    ).group_by(station_alias.number).subquery()
 
-    } for station in stations
-    ]
+    latest_availability = db.session.query(Station,Station_Availability).\
+        join(Station_Availability, Station.number == Station_Availability.number).\
+        join(subquery,(Station_Availability.number == subquery.c.number) &
+                        (Station_Availability.last_update == subquery.c.latest_update)).all()
+    stations_list = [{
+        'Number': station.number,
+        'Address': station.address,
+        'Bike_stands': station.bike_stands,
+        'Available_bikes': availability.available_bikes,
+        'Available_stands': availability.available_bike_stands,
+        # 'last_update': availability.last_update
+        'Status': 'Full' if availability.available_bikes == 0 else('Free' if availability.available_bikes / station.bike_stands >= 0.6 else 'Busy')
+    } for station, availability in latest_availability]
 
-    return jsonify(station_list)
+    return jsonify(stations_list)
+
 
 
 

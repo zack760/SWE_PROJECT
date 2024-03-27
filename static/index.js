@@ -61,18 +61,21 @@ function StationPing() {
     });
 }
 
-fetch('/static/data.json')
+
+fetch('/stations')
   .then(response => response.json())
   .then(data => {
     // Create a table
     let table = document.createElement('table');
+    let caption = table.createCaption();
+    caption.textContent = 'Station List'
 
     // Insert the header row
     let headerRow = table.insertRow();
-    let headers = ["Number", "Status", "Address", "Bike_Stands", "Name"];
+    let headers = ["Number", "Address", "Bike_stands", "Available_bikes", "Available_stands","Status"];
     headers.forEach(headerText => {
       let header = document.createElement('th');
-      let textNode = document.createTextNode(headerText);
+      let textNode = document.createTextNode(headerText.replace('_',' '));
       header.appendChild(textNode);
       headerRow.appendChild(header);
     });
@@ -82,7 +85,13 @@ fetch('/static/data.json')
       let row = table.insertRow();
       headers.forEach(header => {
         let cell = row.insertCell();
-        let textNode = document.createTextNode(item[header.toLowerCase()]);
+        let value = item[header];
+        let textNode = document.createTextNode(value);
+        if (header === 'Status') {
+            cell.className = value.toLowerCase(); // 使用 value 变量，它包含了单元格的实际文本值
+    // 根据状态设置文本节点的值
+            textNode = document.createTextNode(value); // 确保这行代码在 if 块的内部
+}
         cell.appendChild(textNode);
       });
     });
