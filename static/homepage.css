@@ -172,3 +172,18 @@ button{
 .submit-btn:hover {
   background-color: #45a049; /* Slightly darker green on hover */
 }
+
+.busy {
+  color: red;
+  font-weight: bold;
+}
+
+.free {
+  color: green;
+  font-weight: bold;
+}
+
+.full {
+  color: gray;
+  font-weight: bold;
+}
