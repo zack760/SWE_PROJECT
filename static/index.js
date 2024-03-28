@@ -122,8 +122,8 @@ function findRoute() {
   var request = {
     origin: start,
     destination: end, 
-    // travelMode: "BICYCLING"
-    travelMode: "DRIVING"
+    travelMode: "BICYCLING"
+    // travelMode: "DRIVING"
   };
 
   directionsService.route(request, function(result, status) {
